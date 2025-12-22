@@ -1,5 +1,8 @@
 package p2p.controller;
 
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import p2p.service.FileSharer;
 
@@ -31,6 +34,26 @@ public class FileController {
         server.createContext("/download", new DownloadHandler());
         server.createContext("/", new CORSHandler());
         server.setExecutor(executorService);
+    }
+
+    public void start(){
+        server.start();
+        System.out.println("API server started on port "+ server.getAddress().getPort());
+    }
+
+    public void stop(){
+        server.stop(0);
+        executorService.shutdown();
+        System.out.println("API server stopped on port");
+    }
+
+    private class CORSHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            Headers headers = exchange.getResponseHeaders();
+            headers.add("Access-Control-Allow-Origin", "*");
+        }
     }
 
 }
