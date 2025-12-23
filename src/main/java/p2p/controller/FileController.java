@@ -55,5 +55,4 @@ public class FileController {
             headers.add("Access-Control-Allow-Origin", "*");
         }
     }
-
 }
