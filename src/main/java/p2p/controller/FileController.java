@@ -55,4 +55,14 @@ public class FileController {
             headers.add("Access-Control-Allow-Origin", "*");
         }
     }
+
+    private class UploadHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {}
+    }
+
+    private class DownloadHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {}
+    }
 }
