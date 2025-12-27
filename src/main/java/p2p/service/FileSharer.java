@@ -11,7 +11,7 @@ public class FileSharer {
 
     private HashMap<Integer, String> avialableFiles;
 
-    private FileSharer(){
+    public FileSharer(){
         avialableFiles = new HashMap<>();
     }
 
