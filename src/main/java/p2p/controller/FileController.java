@@ -132,6 +132,14 @@ public class FileController {
 
                 String contentTypeMarker = "content-type: ";
                 int contentTypeStart = dataAsString.indexOf(contentTypeMarker, filenameEnd);
+                String contentType = "application/octet-stream";
+                if(contentTypeStart != -1){
+                    contentTypeStart += contentTypeMarker.length();
+                    int contentTypeEnd = dataAsString.indexOf("\r\n", contentTypeStart);
+                    contentType = dataAsString.substring(contentTypeStart, contentTypeEnd);
+                }
+
+                String headerEndMarker = "\r\n\r\n";
 
             }
             catch(Exception ex){
