@@ -102,9 +102,51 @@ public class FileController {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
                 IOUtils.copy(exchange.getRequestBody(), baos);
+                byte[] requestData = baos.toByteArray();
+                Multiparser parser = new Multiparser(requestData, boundry);
             }catch(Exception ex){
 
             }
+        }
+    }
+
+    private static class Multiparser {
+        private final byte[] data;
+        private final String boundry;
+        public Multiparser(byte[] data, String boundry) {
+            this.data = data;
+            this.boundry = boundry;
+        }
+
+        public ParseResult parse(){
+            try{
+
+                String dataAsString = new String(data);
+                String fileNameMarker = "filename=\"";
+                int filenameStart = dataAsString.indexOf(fileNameMarker);
+                if(filenameStart == -1){
+                    return null;
+                }
+                int filenameEnd = dataAsString.indexOf("\"", filenameStart);
+                String fileName = dataAsString.substring(filenameStart, filenameEnd);
+
+                String contentTypeMarker = "content-type: ";
+                int contentTypeStart = dataAsString.indexOf(contentTypeMarker, filenameEnd);
+
+            }
+            catch(Exception ex){
+
+            }
+        }
+    }
+
+    public static class ParseResult {
+        public final String fileName;
+        public final byte[] fileContent;
+
+        public ParseResult(String fileName, byte[] fileContent) {
+            this.fileName = fileName;
+            this.fileContent = fileContent;
         }
     }
 
