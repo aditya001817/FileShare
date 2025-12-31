@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 public class FileController {
 
     private final FileSharer fileSharer;
-    private final HttpServer  server;
+    private final HttpServer server;
     private final String uploadDir;
     private final ExecutorService executorService;
 
@@ -48,7 +48,7 @@ public class FileController {
         System.out.println("API server stopped on port");
     }
 
-    private class CORSHandler implements HttpHandler {
+    private static class CORSHandler implements HttpHandler {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -70,7 +70,7 @@ public class FileController {
         }
     }
 
-    private class UploadHandler implements HttpHandler {
+    private static class UploadHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             Headers headers = exchange.getResponseHeaders();
@@ -103,8 +103,10 @@ public class FileController {
         }
     }
 
-    private class DownloadHandler implements HttpHandler {
+    private static class DownloadHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {}
     }
+
+    // ****If any error occur I changed all  3 classes to Static Remove STATIC to check if it works****
 }
