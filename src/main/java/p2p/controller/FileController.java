@@ -147,8 +147,18 @@ public class FileController {
                 int contentStart = headerEnd + headerEndMarker.length();
 
                 byte[] boundaryBytes = ("\r\n--" + boundry + "--").getBytes();
-                int contentEnd = findSequence(data, boundaryBytes);
+                int contentEnd = findSequence(data, boundaryBytes, contentStart);
+                if(contentEnd == -1){
+                    boundaryBytes = ("\r\n--" + boundry).getBytes();
+                    contentEnd = findSequence(data, boundaryBytes, contentStart);
+                }
+                if(contentEnd == -1 || contentEnd <= contentStart){
+                    return null;
+                }
 
+                byte[] fileContent = new  byte[contentEnd - contentStart];
+                System.arraycopy(data, contentStart, fileContent, 0, fileContent.length);
+                return new ParseResult(fileName, fileContent, contentType);
 
             }
             catch(Exception ex){
@@ -160,14 +170,16 @@ public class FileController {
     public static class ParseResult {
         public final String fileName;
         public final byte[] fileContent;
+        public final String contentType;
 
-        public ParseResult(String fileName, byte[] fileContent) {
+        public ParseResult(String fileName, byte[] fileContent, String contentType) {
             this.fileName = fileName;
             this.fileContent = fileContent;
+            this.contentType = contentType;
         }
     }
 
-    private int findSequence(byte[] data, byte[] sequence, int startPos){
+    private static int findSequence(byte[] data, byte[] sequence, int startPos){
         outer:
             for(int i = startPos; i <= data.length - sequence.length; i++){
                 for(int j = 0; j < sequence.length; j++){
