@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -72,7 +73,7 @@ public class FileController {
         }
     }
 
-    private static class UploadHandler implements HttpHandler {
+    private class UploadHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             Headers headers = exchange.getResponseHeaders();
@@ -104,6 +105,24 @@ public class FileController {
                 IOUtils.copy(exchange.getRequestBody(), baos);
                 byte[] requestData = baos.toByteArray();
                 Multiparser parser = new Multiparser(requestData, boundry);
+                Multiparser.ParseResult result = parser.parse();
+
+                if(result == null) {
+                    String response = "Bad Response: Could not parse file content";
+                    exchange.sendResponseHeaders(400, response.getBytes().length);
+                    try (OutputStream oos = exchange.getResponseBody()){
+                        oos.write(response.getBytes());
+                    }
+                    return;
+                }
+
+                String fileName = result.fileName;
+                if(fileName == null || fileName.trim().isEmpty()) {
+                    fileName = "unnamed-file";
+                }
+                String uniqueFileName = UUID.randomUUID().toString()+"_"+new File(fileName).getName();
+                String filePath = uploadDir + File.separator + uniqueFileName;
+
             }catch(Exception ex){
 
             }
@@ -113,18 +132,19 @@ public class FileController {
     private static class Multiparser {
         private final byte[] data;
         private final String boundry;
+
         public Multiparser(byte[] data, String boundry) {
             this.data = data;
             this.boundry = boundry;
         }
 
-        public ParseResult parse(){
-            try{
+        public ParseResult parse() {
+            try {
 
                 String dataAsString = new String(data);
                 String fileNameMarker = "filename=\"";
                 int filenameStart = dataAsString.indexOf(fileNameMarker);
-                if(filenameStart == -1){
+                if (filenameStart == -1) {
                     return null;
                 }
                 int filenameEnd = dataAsString.indexOf("\"", filenameStart);
@@ -133,57 +153,56 @@ public class FileController {
                 String contentTypeMarker = "content-type: ";
                 int contentTypeStart = dataAsString.indexOf(contentTypeMarker, filenameEnd);
                 String contentType = "application/octet-stream";
-                if(contentTypeStart != -1){
+                if (contentTypeStart != -1) {
                     contentTypeStart += contentTypeMarker.length();
                     int contentTypeEnd = dataAsString.indexOf("\r\n", contentTypeStart);
                     contentType = dataAsString.substring(contentTypeStart, contentTypeEnd);
                 }
 
                 String headerEndMarker = "\r\n\r\n";
-                int  headerEnd = dataAsString.indexOf(headerEndMarker);
-                if(headerEnd == -1){
+                int headerEnd = dataAsString.indexOf(headerEndMarker);
+                if (headerEnd == -1) {
                     return null;
                 }
                 int contentStart = headerEnd + headerEndMarker.length();
 
                 byte[] boundaryBytes = ("\r\n--" + boundry + "--").getBytes();
                 int contentEnd = findSequence(data, boundaryBytes, contentStart);
-                if(contentEnd == -1){
+                if (contentEnd == -1) {
                     boundaryBytes = ("\r\n--" + boundry).getBytes();
                     contentEnd = findSequence(data, boundaryBytes, contentStart);
                 }
-                if(contentEnd == -1 || contentEnd <= contentStart){
+                if (contentEnd == -1 || contentEnd <= contentStart) {
                     return null;
                 }
 
-                byte[] fileContent = new  byte[contentEnd - contentStart];
+                byte[] fileContent = new byte[contentEnd - contentStart];
                 System.arraycopy(data, contentStart, fileContent, 0, fileContent.length);
                 return new ParseResult(fileName, fileContent, contentType);
 
-            }
-            catch(Exception ex){
-
+            } catch (Exception ex) {
+                System.out.println("Error while parsing multipart data" + ex.getMessage());
+                return null;
             }
         }
-    }
 
-    public static class ParseResult {
-        public final String fileName;
-        public final byte[] fileContent;
-        public final String contentType;
+        public static class ParseResult {
+            public final String fileName;
+            public final byte[] fileContent;
+            public final String contentType;
 
-        public ParseResult(String fileName, byte[] fileContent, String contentType) {
-            this.fileName = fileName;
-            this.fileContent = fileContent;
-            this.contentType = contentType;
+            public ParseResult(String fileName, byte[] fileContent, String contentType) {
+                this.fileName = fileName;
+                this.fileContent = fileContent;
+                this.contentType = contentType;
+            }
         }
-    }
 
-    private static int findSequence(byte[] data, byte[] sequence, int startPos){
-        outer:
-            for(int i = startPos; i <= data.length - sequence.length; i++){
-                for(int j = 0; j < sequence.length; j++){
-                    if(data[i+j] != sequence[j]) {
+        private static int findSequence(byte[] data, byte[] sequence, int startPos) {
+            outer:
+            for (int i = startPos; i <= data.length - sequence.length; i++) {
+                for (int j = 0; j < sequence.length; j++) {
+                    if (data[i + j] != sequence[j]) {
                         continue outer;
                     }
                 }
@@ -191,6 +210,7 @@ public class FileController {
             }
             return -1;
 
+        }
     }
 
     private static class DownloadHandler implements HttpHandler {
