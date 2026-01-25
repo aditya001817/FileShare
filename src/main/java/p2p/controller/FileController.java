@@ -140,6 +140,15 @@ public class FileController {
                 }
 
                 String headerEndMarker = "\r\n\r\n";
+                int  headerEnd = dataAsString.indexOf(headerEndMarker);
+                if(headerEnd == -1){
+                    return null;
+                }
+                int contentStart = headerEnd + headerEndMarker.length();
+
+                byte[] boundaryBytes = ("\r\n--" + boundry + "--").getBytes();
+                int contentEnd = findSequence(data, boundaryBytes);
+
 
             }
             catch(Exception ex){
@@ -157,6 +166,8 @@ public class FileController {
             this.fileContent = fileContent;
         }
     }
+
+    private int findSequence(byte[] data, byte[] boundaryBytes){}
 
     private static class DownloadHandler implements HttpHandler {
         @Override
