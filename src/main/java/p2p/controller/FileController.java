@@ -7,10 +7,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.io.IOUtils;
 import p2p.service.FileSharer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -123,8 +120,25 @@ public class FileController {
                 String uniqueFileName = UUID.randomUUID().toString()+"_"+new File(fileName).getName();
                 String filePath = uploadDir + File.separator + uniqueFileName;
 
-            }catch(Exception ex){
+                try(FileOutputStream fos = new FileOutputStream(filePath)) {
+                    fos.write(result.fileContent);
+                }
+                int port = fileSharer.offerFile(filePath);
+                new Thread(() -> fileSharer.startFileServer(port)).start();
+                String jsonResponse = "{\"port\": }" +port + "}";
+                headers.add("Content-Type", "application/json");
+                exchange.sendResponseHeaders(200, jsonResponse.getBytes().length);
+                try(OutputStream oos = exchange.getResponseBody()){
+                    oos.write(jsonResponse.getBytes());
+                }
 
+            }catch(Exception ex){
+                System.err.println("Error Processing file upload: "+ex.getMessage());
+                String response = "Server error: " +ex.getMessage();
+                exchange.sendResponseHeaders(500, response.getBytes().length);
+                try(OutputStream oos = exchange.getResponseBody()){
+                    oos.write(response.getBytes());
+                }
             }
         }
     }
