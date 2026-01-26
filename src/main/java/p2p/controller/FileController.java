@@ -9,6 +9,7 @@ import p2p.service.FileSharer;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -227,9 +228,50 @@ public class FileController {
         }
     }
 
-    private static class DownloadHandler implements HttpHandler {
+    private class DownloadHandler implements HttpHandler {
         @Override
-        public void handle(HttpExchange exchange) throws IOException {}
+        public void handle(HttpExchange exchange) throws IOException {
+            Headers headers = exchange.getResponseHeaders();
+            headers.add("Access-Control-Allow-Origin", "*");
+
+            if(!exchange.getRequestMethod().equalsIgnoreCase("GET")){
+                String response = "Method not allowed";
+                exchange.sendResponseHeaders(405, response.getBytes().length);
+                try(OutputStream oos = exchange.getResponseBody()){
+                    oos.write(response.getBytes());
+                }
+                return;
+            }
+
+            String path = exchange.getRequestURI().getPath();
+            String portStr = path.substring(path.lastIndexOf('/'+1));
+            try {
+                int port = Integer.parseInt(portStr);
+
+
+                try(Socket socket = new Socket("localhost", port)){
+                    InputStream socketInput = socket.getInputStream();
+                    File tempFile = File.createTempFile("download-", ".tmp");
+                    String fileName = "downloaded-file";
+                    try(FileOutputStream fos = new FileOutputStream(tempFile)){
+                        byte[] buffer = new byte[4096];
+                        int byteRead;
+                        ByteArrayOutputStream headerBaos = new ByteArrayOutputStream();
+                        int b;
+                        while((b = socketInput.read()) != -1) {
+                            if(b =='\n') break;
+                            headerBaos.write(b);
+                        }
+                        String header = headerBaos.toString().trim();
+                        if(header.startsWith(fileName)) {
+                            fos.write(buffer, 0, byteRead);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     // ****If any error occur I changed all  3 classes to Static Remove STATIC to check if it works****
