@@ -263,13 +263,34 @@ public class FileController {
                             headerBaos.write(b);
                         }
                         String header = headerBaos.toString().trim();
-                        if(header.startsWith(fileName)) {
+                        if(header.startsWith("Filename: ")) {
+                            fileName = header.substring("Filename: ".length());
+                        }
+                        while((byteRead = socketInput.read(buffer)) != -1){
                             fos.write(buffer, 0, byteRead);
                         }
                     }
+                    headers.add("Content-Disposition: ", "attachment; filename=\""+fileName+"\"");
+                    headers.add("Content-Type", "application/octet-stream");
+                    exchange.sendResponseHeaders(200, tempFile.length());
+                    try(OutputStream oos = exchange.getResponseBody()) {
+                        FileInputStream fis = new FileInputStream(tempFile);
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = fis.read(buffer)) != -1) {
+                            oos.write(buffer, 0, bytesRead);
+                        }
+                    }
+                    tempFile.delete();
                 }
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                System.err.println("Error downlooading the file"+e.getMessage());
+                String response = "Error downloading file "+e.getMessage();
+                headers.add("Content-type", "text/plain");
+                exchange.sendResponseHeaders(400, response.getBytes().length);
+                try(OutputStream oos = exchange.getResponseBody()){
+                    oos.write(response.getBytes());
+                }
             }
         }
     }
