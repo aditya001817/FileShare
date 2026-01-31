@@ -64,13 +64,15 @@ FileShare is a peer-to-peer file sharing application that allows users to share 
                     └─────────────┘      └─────────────┘      └─────────────┘
                     Low Level Design (LLD)
 
-**Component Details
-    Frontend Components**
+**Component Details**
+
+    **Frontend Components**
     
     NextJSApp: Main application component managing state and routing
     FileUploadComponent: Handles drag-and-drop file uploads
     FileDownloadComponent: Manages file downloads using invite codes
-    Backend Components
+
+    **Backend Components**
     
     App: Main application entry point and server initialization
     FileController: REST API endpoints for file operations
