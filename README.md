@@ -21,8 +21,8 @@ FileShare is a peer-to-peer file sharing application that allows users to share 
     Node.js 18+ and npm (for the frontend)
     Maven (for building the Java project)
 
-**Manual Setup
-    Backend Setup**
+**Manual Setup \n
+    Backend Setup** \n
         Build the Java project:
         
             mvn clean package
@@ -31,7 +31,7 @@ FileShare is a peer-to-peer file sharing application that allows users to share 
             java -jar target/p2p-1.0-SNAPSHOT.jar
             The backend server will start on port 8080.
 
-**Frontend Setup
+**Frontend Setup \n
     Install dependencies:**
     
         cd ui
@@ -41,7 +41,7 @@ FileShare is a peer-to-peer file sharing application that allows users to share 
         npm run dev
         The frontend will be available at http://localhost:3000.
 
-**How It Works
+**How It Works \n
     File Upload:**
     
         User uploads a file through the UI
