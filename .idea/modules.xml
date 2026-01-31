@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://C:iml.iml" filepath="C:iml.iml" />
+      <module fileurl="file://$PROJECT_DIR$/peerlink.iml" filepath="$PROJECT_DIR$/peerlink.iml" />
     </modules>
   </component>
 </project>
