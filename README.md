@@ -1,5 +1,6 @@
-FileShare - P2P File Sharing Application
-FileShare is a peer-to-peer file sharing application that allows users to share files directly between devices using a simple invite code system.
+### F**ileShare - P2P File Sharing Application**
+
+**_FileShare is a peer-to-peer file sharing application that allows users to share files directly between devices using a simple invite code system.**_
 
 **Project Structure**
     src/main/java/p2p: Java backend code
@@ -10,6 +11,7 @@ FileShare is a peer-to-peer file sharing application that allows users to share 
     ui/: Next.js frontend application
     src/app: Next.js app router pages
     src/components: React components
+
 **_Features_**
     Drag and drop file upload
     File sharing via invite codes (port numbers)
@@ -21,8 +23,8 @@ FileShare is a peer-to-peer file sharing application that allows users to share 
     Node.js 18+ and npm (for the frontend)
     Maven (for building the Java project)
 
-**Manual Setup \n
-    Backend Setup** \n
+**Manual Setup**
+    **Backend Setup**
         Build the Java project:
         
             mvn clean package
@@ -31,8 +33,8 @@ FileShare is a peer-to-peer file sharing application that allows users to share 
             java -jar target/p2p-1.0-SNAPSHOT.jar
             The backend server will start on port 8080.
 
-**Frontend Setup \n
-    Install dependencies:**
+**Frontend Setup**
+    **Install dependencies:**
     
         cd ui
         npm install
@@ -41,8 +43,8 @@ FileShare is a peer-to-peer file sharing application that allows users to share 
         npm run dev
         The frontend will be available at http://localhost:3000.
 
-**How It Works \n
-    File Upload:**
+**How It Works**
+    **File Upload:**
     
         User uploads a file through the UI
         The file is sent to the Java backend
