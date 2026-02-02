@@ -1,212 +1,245 @@
-# PeerLink - P2P File Sharing Application
+📁 FileShare — Secure P2P File Sharing (Invite Code Based)
+<p align="center"> <img src="https://img.shields.io/badge/Java-17+-red?style=for-the-badge&logo=openjdk&logoColor=white" /> <img src="https://img.shields.io/badge/Maven-Build-blue?style=for-the-badge&logo=apachemaven&logoColor=white" /> <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=nextdotjs&logoColor=white" /> <img src="https://img.shields.io/badge/TailwindCSS-UI-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white" /> </p>
 
-PeerLink is a peer-to-peer file sharing application that allows users to share files directly between devices using a simple invite code system.
+FileShare is a lightweight peer-to-peer file sharing web application that allows users to upload a file, generate a unique invite code (port), and share that file with others for download using the code.
 
-## Project Structure
+✅ Built with a Java HttpServer backend, socket-based P2P file transfer, and a modern Next.js + Tailwind UI.
 
-- `src/main/java/p2p`: Java backend code
-  - `App.java`: Main application entry point
-  - `controller/`: API controllers
-  - `service/`: Business logic services
-  - `utils/`: Utility classes
-- `ui/`: Next.js frontend application
-  - `src/app`: Next.js app router pages
-  - `src/components`: React components
+🚀 Features
+✅ Upload & Share
 
-## Features
+Drag and drop file upload
 
-- Drag and drop file upload
-- File sharing via invite codes (port numbers)
-- File downloading using invite codes
-- Modern, responsive UI
-- Direct peer-to-peer file transfer
+Stores uploaded file in a temporary directory
 
-## Prerequisites
+Generates a unique invite code (port)
 
-- Java 11+ (for the backend)
-- Node.js 18+ and npm (for the frontend)
-- Maven (for building the Java project)
+Starts a dedicated file server on the generated port
 
-## Getting Started
+✅ Download & Receive
 
-### Quick Start
+Download using invite code
 
-#### Linux/macOS:
-```bash
-./start.sh
-```
+Streams file to browser as downloadable attachment
 
-#### Windows:
-```bash
-start.bat
-```
+✅ Modern UI
 
-These scripts will build the Java backend, start the server, and launch the frontend development server.
+Responsive design
 
-### Manual Setup
+Upload progress state
 
-#### Backend Setup
+Copy invite code button
 
-1. Build the Java project:
-   ```bash
-   mvn clean package
-   ```
+✅ Proxy Setup (No CORS issues)
 
-2. Run the backend server:
-   ```bash
-   java -jar target/p2p-1.0-SNAPSHOT.jar
-   ```
+UI communicates via Next.js proxy routes:
 
-   The backend server will start on port 8080.
+/api/upload
 
-#### Frontend Setup
+/api/download/{port}
 
-1. Install dependencies:
-   ```bash
-   cd ui
-   npm install
-   ```
+🧠 How It Works (Architecture)
+🔹 Upload Flow
 
-2. Run the development server:
-   ```bash
-   npm run dev
-   ```
+User uploads file in UI
 
-   The frontend will be available at [http://localhost:3000](http://localhost:3000).
+UI sends POST /api/upload
 
-## How It Works
+Next.js proxies request → Java backend POST /upload
 
-1. **File Upload**:
-   - User uploads a file through the UI
-   - The file is sent to the Java backend
-   - The backend assigns a unique port number (invite code)
-   - The backend starts a file server on that port
+Java backend:
 
-2. **File Sharing**:
-   - The user shares the invite code with another user
-   - The other user enters the invite code in their UI
+parses multipart data
 
-3. **File Download**:
-   - The UI connects to the specified port
-   - The file is transferred directly from the host to the recipient
+stores file in temp directory
 
-## Architecture
+generates invite code (valid port)
 
-```
-┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-│             │      │             │      │             │
-│  Next.js UI │◄────►│ Java Server │◄────►│ Peer Device │
-│             │      │             │      │             │
-└─────────────┘      └─────────────┘      └─────────────┘
-```
+starts socket-based file server
 
-## Low Level Design (LLD)
+UI shows invite code to share
 
-```mermaid
-classDiagram
-    %% Frontend Components
-    class NextJSApp {
-        +handleFileUpload()
-        +handleFileDownload()
-        +connectToPeer()
-    }
-    
-    class FileUploadComponent {
-        +handleDragDrop()
-        +validateFile()
-        +uploadFile()
-    }
-    
-    class FileDownloadComponent {
-        +enterInviteCode()
-        +downloadFile()
-        +showProgress()
-    }
+🔹 Download Flow
 
-    %% Backend Components
-    class App {
-        +main()
-        +startServer()
-    }
-    
-    class FileController {
-        +uploadFile()
-        +generateInviteCode()
-        +validateInviteCode()
-    }
-    
-    class FileService {
-        +storeFile()
-        +createFileServer()
-        +handleFileTransfer()
-    }
-    
-    class FileUtils {
-        +validateFile()
-        +generatePort()
-        +cleanupResources()
-    }
+User enters invite code
 
-    %% Relationships
-    NextJSApp --> FileUploadComponent
-    NextJSApp --> FileDownloadComponent
-    FileUploadComponent --> FileController
-    FileDownloadComponent --> FileController
-    FileController --> FileService
-    FileService --> FileUtils
+UI sends GET /api/download/{port}
 
-    %% Data Flow
-    class DataFlow {
-        FileUpload
-        FileDownload
-        InviteCode
-        PortNumber
-    }
+Next.js proxies request → Java backend GET /download/{port}
 
-    %% Component Notes
-    note for NextJSApp "Handles UI state and user interactions"
-    note for FileController "REST API endpoints for file operations"
-    note for FileService "Core business logic for file handling"
-    note for FileUtils "Utility functions for file operations"
-```
+Java backend connects to P2P server on that port
 
-### Component Details
+File is returned as application/octet-stream
 
-1. **Frontend Components**
-   - `NextJSApp`: Main application component managing state and routing
-   - `FileUploadComponent`: Handles drag-and-drop file uploads
-   - `FileDownloadComponent`: Manages file downloads using invite codes
+🛠️ Tech Stack
+Frontend
 
-2. **Backend Components**
-   - `App`: Main application entry point and server initialization
-   - `FileController`: REST API endpoints for file operations
-   - `FileService`: Core business logic for file handling
-   - `FileUtils`: Utility functions for file validation and port management
+Next.js 14 (App Router)
 
-3. **Data Flow**
-   - File uploads are handled through drag-and-drop
-   - Invite codes (port numbers) are generated for sharing
-   - Direct peer-to-peer file transfer using WebSocket connections
+React
 
-## Security Considerations
+Tailwind CSS
 
-- This is a demo application and does not include encryption or authentication
-- For production use, consider adding:
-  - File encryption
-  - User authentication
-  - HTTPS support
-  - Port validation and security
+Axios
 
-## Deployment
+React Dropzone
 
-For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+Backend
 
-Options include:
-- Local network deployment
-- Docker deployment (using provided Dockerfile.backend, Dockerfile.frontend, and docker-compose.yml)
-- Cloud deployment (Heroku, Railway, Vercel, Netlify)
-- VPS deployment
+Java 17
 
-## License
+com.sun.net.httpserver.HttpServer
 
-MIT
+Socket Programming
+
+Apache Commons IO
+
+Apache Commons FileUpload
+
+📂 Project Structure
+FileShare/
+├── src/main/java/p2p/
+│   ├── App.java
+│   ├── controller/
+│   │   └── FileController.java
+│   ├── service/
+│   │   └── FileSharer.java
+│   └── utils/
+│       └── UploadUtils.java
+│
+└── ui/
+    ├── src/app/
+    │   ├── page.tsx
+    │   ├── layout.tsx
+    │   └── api/
+    │       ├── upload/route.ts
+    │       └── download/[port]/route.ts
+    └── src/components/
+        ├── FileUpload.tsx
+        ├── FileDownload.tsx
+        └── InviteCode.tsx
+
+✅ Prerequisites
+
+Make sure you have installed:
+
+Java 17+
+
+Maven
+
+Node.js 18+
+
+npm
+
+⚙️ Setup & Run Locally
+✅ 1) Run Backend (Java)
+
+Go to your backend folder (where pom.xml exists):
+
+cd C:\FileShare\FileShare
+
+
+Run backend:
+
+mvn clean compile exec:java "-Dexec.mainClass=p2p.App"
+
+
+Backend runs on:
+
+✅ http://localhost:8080
+
+✅ 2) Run Frontend (Next.js)
+
+Go to UI folder:
+
+cd ui
+
+
+Install dependencies:
+
+npm install
+
+
+Start UI:
+
+npm run dev
+
+
+Frontend runs on:
+
+✅ http://localhost:3000
+
+🔌 API Endpoints
+✅ Upload File
+
+POST /upload (Java backend)
+POST /api/upload (Next.js proxy route)
+
+Request: multipart/form-data
+Field: file
+
+Response example:
+
+{ "port": 53694 }
+
+✅ Download File
+
+GET /download/{port} (Java backend)
+GET /api/download/{port} (Next.js proxy route)
+
+Response:
+
+File stream: application/octet-stream
+
+Header: Content-Disposition: attachment; filename="..."
+
+✅ Example Usage
+
+Open http://localhost:3000
+
+Upload any file
+
+Copy invite code
+
+Enter invite code in Receive a File tab
+
+Download file successfully ✅
+
+📌 Important Notes
+
+Invite codes are valid port numbers
+
+Valid port range: ✅ 1 – 65535
+
+Recommended safe dynamic range: ✅ 49153 – 65535
+
+🧪 Common Issues & Fixes
+❌ Upload fails
+
+✅ Make sure frontend does NOT manually set:
+
+"Content-Type": "multipart/form-data"
+
+
+Axios automatically sets correct boundary with FormData.
+
+❌ Invalid invite code
+
+If code is greater than 65535, update port generator in UploadUtils.
+
+🚀 Future Enhancements (Optional)
+
+Invite code expiry (TTL)
+
+Single-use / limited downloads per code
+
+Download progress bar
+
+Multi-device LAN sharing
+
+Authentication support
+
+👨‍💻 Author
+
+Aditya Chauhan
+Built as a peer-to-peer file sharing project using Java + Next.js.
