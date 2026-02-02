@@ -1,94 +1,154 @@
-### F**ileShare - P2P File Sharing Application**
+# **FileShare** — Secure P2P File Sharing (Invite Code Based)
 
-**_FileShare is a peer-to-peer file sharing application that allows users to share files directly between devices using a simple invite code system.**_
+**FileShare is a lightweight peer-to-peer file sharing web application that allows users to upload a file, generate a unique invite code (port), and share that file with others for download using the code.**
 
-**Project Structure**
-    src/main/java/p2p: Java backend code
-    App.java: Main application entry point
-    controller/: API controllers
-    service/: Business logic services
-    utils/: Utility classes
-    ui/: Next.js frontend application
-    src/app: Next.js app router pages
-    src/components: React components
+### This project is built using:
 
-**_Features_**
-    Drag and drop file upload
-    File sharing via invite codes (port numbers)
-    File downloading using invite codes
-    Modern, responsive UI
-    Direct peer-to-peer file transfer
-    Prerequisites
-    Java 11+ (for the backend)
-    Node.js 18+ and npm (for the frontend)
-    Maven (for building the Java project)
+* Java (HttpServer) backend for upload + download APIs
+* Socket-based P2P server for actual file transfer
+* Next.js (App Router) frontend with modern UI
+* Next.js API Proxy Routes (/api/upload, /api/download) for clean frontend-backend communication
 
-**Manual Setup**
-    **Backend Setup**
-        Build the Java project:
-        
-            mvn clean package
-            Run the backend server:
-            
-            java -jar target/p2p-1.0-SNAPSHOT.jar
-            The backend server will start on port 8080.
 
-**Frontend Setup**
-    **Install dependencies:**
-    
-        cd ui
-        npm install
-        Run the development server:
-        
-        npm run dev
-        The frontend will be available at http://localhost:3000.
+### **Features**
 
-**How It Works**
-    **File Upload:**
-    
-        User uploads a file through the UI
-        The file is sent to the Java backend
-        The backend assigns a unique port number (invite code)
-        The backend starts a file server on that port
-        File Sharing:
-        
-        The user shares the invite code with another user
-        The other user enters the invite code in their UI
-        File Download:
-        
-        The UI connects to the specified port
-        The file is transferred directly from the host to the recipient
-        Architecture
-                    ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-                    │             │      │             │      │             │
-                    │  Next.js UI │◄────►│ Java Server │◄────►│ Peer Device │
-                    │             │      │             │      │             │
-                    └─────────────┘      └─────────────┘      └─────────────┘
-                    Low Level Design (LLD)
+* Upload & Share
+* Drag and drop file upload
+* File stored temporarily on server machine
+* Generates a unique invite code
+* Starts a dedicated file server on the generated port
 
-**Component Details**
+### **Download & Receive**
 
-    **Frontend Components**
-    
-    NextJSApp: Main application component managing state and routing
-    FileUploadComponent: Handles drag-and-drop file uploads
-    FileDownloadComponent: Manages file downloads using invite codes
+* Download using invite code
+* Fetches file stream from P2P server and downloads in browser
 
-    **Backend Components**
-    
-    App: Main application entry point and server initialization
-    FileController: REST API endpoints for file operations
-    FileService: Core business logic for file handling
-    FileUtils: Utility functions for file validation and port management
-    Data Flow
-    
-    File uploads are handled through drag-and-drop
-    Invite codes (port numbers) are generated for sharing
-    Direct peer-to-peer file transfer using WebSocket connections
-    Security Considerations
-    This is a demo application and does not include encryption or authentication
-    For production use, consider adding:
-    File encryption
-    User authentication
-    HTTPS support
-    Port validation and security
+### **Modern Web UI**
+
+* Responsive clean UI
+* Upload progress indicator
+* Copy invite code button
+
+### **Proxy Architecture (No CORS issues)**
+
+* Frontend sends request to Next.js routes (localhost:3000/api/...)
+* Next.js proxies the request to Java backend (localhost:8080/...)
+
+### **How It Works (Architecture)**
+
+#### 🔹 Upload Flow
+
+* User uploads a file in the UI
+* UI sends POST /api/upload (Next.js route)
+* Next.js proxies it → Java backend POST /upload
+* Java backend:
+*      1. parses multipart file
+*      2. stores file in temp directory
+*      3. generates a port code (invite code)
+*      4. starts a socket file server on that port
+* UI displays the invite code
+
+#### **🔹 Download Flow**
+
+* User enters invite code
+* UI sends GET /api/download/{code}
+* Next.js proxies it → Java backend GET /download/{code}
+* Java backend connects to file server (localhost:{code})
+* File is streamed back to the browser for download
+
+### **Tech Stack**
+
+#### **Frontend**
+
+* Next.js 14 (App Router)
+* React
+* Tailwind CSS
+* Axios
+* React Dropzone
+
+#### **Backend**
+
+* Java 17
+* com.sun.net.httpserver.HttpServer
+* Socket Programming
+* Apache Commons IO
+* Apache Commons FileUpload
+
+
+### **Prerequisites**
+
+Make sure you have installed:
+* Java 17+
+* Maven
+* Node.js 18+
+* npm
+
+
+### **Setup & Run Locally**
+**1) Run Backend (Java)** 
+
+Go to the backend directory (where pom.xml exists):
+
+            cd C:\FileShare\FileShare
+
+Build and run:
+
+            mvn clean compile exec:java "-Dexec.mainClass=p2p.App"
+
+Backend will start on:
+ http://localhost:8080
+
+**2) Run Frontend (Next.js)**
+
+Go to UI folder:
+
+           cd ui
+
+Install dependencies:
+
+           npm install
+
+Start development server:
+
+           npm run dev
+
+Frontend will start on:
+ http://localhost:3000
+
+
+### **API Endpoints**
+
+#### Upload File
+
+POST /upload (backend)
+POST /api/upload (proxy route)
+*  Request: multipart/form-data
+*  Field: file
+
+
+#### **Download** File
+
+* GET /download/{port} (backend)
+* GET /api/download/{port} (proxy route)
+
+**Response**:
+
+* File binary stream (application/octet-stream)
+* Content-Disposition header for filename
+
+#### **Security Notes**
+
+This project is designed for local / lab / academic use.
+Recommended improvements for production:
+* Invite code expiry (TTL)
+* Authentication / authorization
+* Rate limiting
+* Encryption for file transfer
+* Cloud-based storage / streaming
+* 
+#### **Example Usage**
+
+1. Open http://localhost:3000
+2. Upload file → Copy invite code
+3. Share invite code with another user
+4. Receiver enters code → downloads file
